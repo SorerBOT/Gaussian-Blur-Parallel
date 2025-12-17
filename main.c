@@ -1,6 +1,7 @@
 #include "guassonFilter.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <omp.h>
 
 int main() {
     const char *inputFilename = "assets/input_image.png";
@@ -8,7 +9,8 @@ int main() {
     int blurRadius = 5;
 
     Image *inputImage = loadImage(inputFilename);
-    if (inputImage == NULL) {
+    if (inputImage == NULL)
+    {
         printf("Failed to load image\n");
         return -1;
     }
