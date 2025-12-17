@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 int main() {
-    const char *inputFilename = "input_image.png";
+    const char *inputFilename = "assets/input_image.png";
     const char *outputFilename = "output_image.png";
     int blurRadius = 5;
 
