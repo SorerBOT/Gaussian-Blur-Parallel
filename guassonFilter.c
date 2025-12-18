@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <omp.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -21,10 +22,12 @@
 
 
 // Function to load an image
-Image *loadImage(const char *filename) {
+Image *loadImage(const char *filename)
+{
     int width, height, channels;
     unsigned char *data = stbi_load(filename, &width, &height, &channels, 4); // 4 means we want the image in RGBA format
-    if (data == NULL) {
+    if (data == NULL)
+    {
         printf("Failed to load image: %s\n", filename);
         return NULL;
     }
@@ -34,7 +37,8 @@ Image *loadImage(const char *filename) {
     image->height = height;
     image->pixels = (RGBA *)malloc(width * height * sizeof(RGBA));
 
-    for (int i = 0; i < width * height; i++) {
+    for (int i = 0; i < width * height; i++)
+    {
         image->pixels[i].r = data[4 * i + 0];
         image->pixels[i].g = data[4 * i + 1];
         image->pixels[i].b = data[4 * i + 2];
@@ -46,33 +50,41 @@ Image *loadImage(const char *filename) {
 }
 
 // Function to save an image
-void saveImage(const char *filename, Image *image) {
+void saveImage(const char *filename, Image *image)
+{
     unsigned char *data = (unsigned char *)malloc(image->width * image->height * 4);
 
-    for (int i = 0; i < image->width * image->height; i++) {
+    for (int i = 0; i < image->width * image->height; i++)
+    {
         data[4 * i + 0] = image->pixels[i].r;
         data[4 * i + 1] = image->pixels[i].g;
         data[4 * i + 2] = image->pixels[i].b;
         data[4 * i + 3] = image->pixels[i].a;
     }
 
-    if (stbi_write_png(filename, image->width, image->height, 4, data, image->width * 4)) {
+    if (stbi_write_png(filename, image->width, image->height, 4, data, image->width * 4))
+    {
         printf("Image saved successfully: %s\n", filename);
-    } else {
+    }
+    else
+    {
         printf("Failed to save image: %s\n", filename);
     }
 
     free(data);
 }
 
-void createGaussianKernel(int radius, double sigma, double **kernel, double *sum) {
+void createGaussianKernel(int radius, double sigma, double **kernel, double *sum)
+{
     int kernelWidth = (2 * radius) + 1;
     *sum = 0.0;
 
     *kernel = (double *)malloc(kernelWidth * kernelWidth * sizeof(double));
 
-    for (int x = -radius; x <= radius; x++) {
-        for (int y = -radius; y <= radius; y++) {
+    for (int x = -radius; x <= radius; x++)
+    {
+        for (int y = -radius; y <= radius; y++)
+        {
             double exponentNumerator = -(x * x + y * y);
             double exponentDenominator = (2 * sigma * sigma);
             double eExpression = exp(exponentNumerator / exponentDenominator);
@@ -82,12 +94,14 @@ void createGaussianKernel(int radius, double sigma, double **kernel, double *sum
         }
     }
 
-    for (int i = 0; i < kernelWidth * kernelWidth; i++) {
+    for (int i = 0; i < kernelWidth * kernelWidth; i++)
+    {
         (*kernel)[i] /= *sum;
     }
 }
 
-Image *createBlurredImage(int radius, Image *image) {
+Image *createBlurredImage(int radius, Image *image)
+{
     int width = image->width;
     int height = image->height;
     Image *outputImage = (Image *)malloc(sizeof(Image));
@@ -102,14 +116,19 @@ Image *createBlurredImage(int radius, Image *image) {
 
     createGaussianKernel(radius, sigma, &kernel, &sum);
 
-    for (int x = radius; x < width - radius; x++) {
-        for (int y = radius; y < height - radius; y++) {
+#pragma omp parallel for
+    for (int y = radius; y < height - radius; y++)
+    {
+        for (int x = radius; x < width - radius; x++)
+        {
             double redValue = 0.0;
             double greenValue = 0.0;
             double blueValue = 0.0;
 
-            for (int kernelX = -radius; kernelX <= radius; kernelX++) {
-                for (int kernelY = -radius; kernelY <= radius; kernelY++) {
+            for (int kernelX = -radius; kernelX <= radius; kernelX++)
+            {
+                for (int kernelY = -radius; kernelY <= radius; kernelY++)
+                {
                     int imageX = x - kernelX;
                     int imageY = y - kernelY;
                     double kernelValue = kernel[(kernelX + radius) * kernelWidth + (kernelY + radius)];

@@ -9,12 +9,14 @@
 #define guassonFilter_h
 
 // Define an RGBA pixel structure
-typedef struct {
+typedef struct
+{
     unsigned char r, g, b, a;
 } RGBA;
 
 // Define an Image structure
-typedef struct {
+typedef struct
+{
     int width;
     int height;
     RGBA *pixels;

@@ -1,9 +1,9 @@
 #include "guassonFilter.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <omp.h>
 
-int main() {
+int main()
+{
     const char *inputFilename = "assets/input_image.png";
     const char *outputFilename = "output_image.png";
     int blurRadius = 5;
