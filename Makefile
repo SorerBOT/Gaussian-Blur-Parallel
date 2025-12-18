@@ -1,6 +1,8 @@
 CC      := gcc
-CFLAGS  := -std=c11 -O2 -Wall -Wextra -Wpedantic -I/opt/homebrew/opt/libomp/include
-LDFLAGS := -lm -L/opt/homebrew/opt/libomp/lib
+CFLAGS  := -std=c11 -O2 -Wall -Wextra -Wpedantic 	\
+           -Xpreprocessor -fopenmp 					\
+           -I/opt/homebrew/opt/libomp/include
+LDFLAGS := -lm -L/opt/homebrew/opt/libomp/lib -lomp
 
 TARGET := bin/blur
 OBJS   := bin/main.o bin/guassonFilter.o

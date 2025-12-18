@@ -29,5 +29,6 @@ void saveImage(const char *filename, Image *image);
 void createGaussianKernel(int radius, double sigma, double **kernel, double *sum);
 
 Image *createBlurredImage(int radius, Image *image);
+Image *createBlurredImage_sequential(int radius, Image *image);
 
 #endif /* guassonFilter_h */

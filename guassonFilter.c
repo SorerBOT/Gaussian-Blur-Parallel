@@ -37,6 +37,7 @@ Image *loadImage(const char *filename)
     image->height = height;
     image->pixels = (RGBA *)malloc(width * height * sizeof(RGBA));
 
+#pragma omp parallel for schedule(static, 16)
     for (int i = 0; i < width * height; i++)
     {
         image->pixels[i].r = data[4 * i + 0];
@@ -54,6 +55,7 @@ void saveImage(const char *filename, Image *image)
 {
     unsigned char *data = (unsigned char *)malloc(image->width * image->height * 4);
 
+#pragma omp parallel for schedule(static, 16)
     for (int i = 0; i < image->width * image->height; i++)
     {
         data[4 * i + 0] = image->pixels[i].r;
@@ -129,6 +131,51 @@ Image *createBlurredImage(int radius, Image *image)
             {
                 for (int kernelX = -radius; kernelX <= radius; kernelX++)
                 {
+                    int imageX = x - kernelX;
+                    int imageY = y - kernelY;
+                    double kernelValue = kernel[(kernelX + radius) * kernelWidth + (kernelY + radius)];
+                    RGBA pixel = image->pixels[imageY * width + imageX];
+
+                    redValue += pixel.r * kernelValue;
+                    greenValue += pixel.g * kernelValue;
+                    blueValue += pixel.b * kernelValue;
+                }
+            }
+
+            RGBA *outputPixel = &outputImage->pixels[y * width + x];
+            outputPixel->r = (unsigned char)redValue;
+            outputPixel->g = (unsigned char)greenValue;
+            outputPixel->b = (unsigned char)blueValue;
+            outputPixel->a = image->pixels[y * width + x].a; // Preserve the alpha channel
+        }
+    }
+
+    free(kernel);
+    return outputImage;
+}
+Image *createBlurredImage_sequential(int radius, Image *image) {
+    int width = image->width;
+    int height = image->height;
+    Image *outputImage = (Image *)malloc(sizeof(Image));
+    outputImage->width = width;
+    outputImage->height = height;
+    outputImage->pixels = (RGBA *)malloc(width * height * sizeof(RGBA));
+
+    double sigma = fmax(radius / 2.0, 1.0);
+    int kernelWidth = (2 * radius) + 1;
+    double *kernel;
+    double sum;
+
+    createGaussianKernel(radius, sigma, &kernel, &sum);
+
+    for (int x = radius; x < width - radius; x++) {
+        for (int y = radius; y < height - radius; y++) {
+            double redValue = 0.0;
+            double greenValue = 0.0;
+            double blueValue = 0.0;
+
+            for (int kernelX = -radius; kernelX <= radius; kernelX++) {
+                for (int kernelY = -radius; kernelY <= radius; kernelY++) {
                     int imageX = x - kernelX;
                     int imageY = y - kernelY;
                     double kernelValue = kernel[(kernelX + radius) * kernelWidth + (kernelY + radius)];
