@@ -125,9 +125,9 @@ Image *createBlurredImage(int radius, Image *image)
             double greenValue = 0.0;
             double blueValue = 0.0;
 
-            for (int kernelX = -radius; kernelX <= radius; kernelX++)
+            for (int kernelY = -radius; kernelY <= radius; kernelY++)
             {
-                for (int kernelY = -radius; kernelY <= radius; kernelY++)
+                for (int kernelX = -radius; kernelX <= radius; kernelX++)
                 {
                     int imageX = x - kernelX;
                     int imageY = y - kernelY;
